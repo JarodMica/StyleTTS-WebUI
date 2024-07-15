@@ -10,11 +10,13 @@ import torch
 import time
 import yaml
 
-from utils import *
+from styletts2.utils import *
 
 # Path to the settings file
 SETTINGS_FILE_PATH = "Configs/generate_settings.yaml"
 GENERATE_SETTINGS = {}
+TRAINING_DIR = "training"
+BASE_CONFIG_FILE_PATH = r"Configs\template_config_ft.yml"
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 global_phonemizer = None
@@ -104,6 +106,10 @@ def train_model(data):
 def update_settings(setting_value):
     return f"Settings updated to: {setting_value}"
 
+def get_folder_list(root):
+    folder_list = [item for item in os.listdir(root) if os.path.isdir(os.path.join(root, item))]
+    return folder_list
+
 def get_reference_audio_list(voice_name, root="voices"):
     reference_directory_list = os.listdir(os.path.join(root, voice_name))
     return reference_directory_list
@@ -165,9 +171,41 @@ def save_settings(settings):
 def update_button_proxy():
     voice_list_with_defaults = get_voice_list(append_defaults=True)
     return gr.Dropdown(choices=voice_list_with_defaults)
+
+def save_yaml_config(config,  voice_name):
+    os.makedirs(os.path.join(TRAINING_DIR, voice_name), exist_ok=True)  # Create the output directory if it doesn't exist
+    output_file_path = os.path.join(TRAINING_DIR, voice_name, f"{voice_name}_config.yml")
+    with open(output_file_path, 'w') as file:
+        yaml.dump(config, file)
+        
+def update_config(voice_name, save_freq, log_interval, epochs, batch_size, max_len, pretrained_model, load_only_params, F0_path, ASR_config, ASR_path, PLBERT_dir, train_data, val_data, root_path, diff_epoch, joint_epoch):
+    with open(BASE_CONFIG_FILE_PATH, "r") as f:
+        config = yaml.safe_load(f)
+
+    config["log_dir"] = os.path.join(TRAINING_DIR, voice_name)
+    config["save_freq"] = save_freq
+    config["log_interval"] = log_interval
+    config["epochs"] = epochs
+    config["batch_size"] = batch_size
+    config["max_len"] = max_len
+    config["pretrained_model"] = pretrained_model
+    config["load_only_params"] = load_only_params
+    config["F0_path"] = F0_path
+    config["ASR_config"] = ASR_config
+    config["ASR_path"] = ASR_path
+    config["PLBERT_dir"] = PLBERT_dir
+    config["data_params"]["train_data"] = train_data
+    config["data_params"]["val_data"] = val_data
+    config["data_params"]["root_path"] = root_path
+    config["loss_params"]["diff_epoch"] = diff_epoch
+    config["loss_params"]["joint_epoch"] = joint_epoch
+
+    save_yaml_config(config, voice_name=voice_name)
+    return "Configuration updated successfully."
         
 voice_list_with_defaults = get_voice_list(append_defaults=True)
 reference_audio_list = get_reference_audio_list(voice_list_with_defaults[0])
+train_list = get_folder_list(root="training")
 
 
 # Load models with the default or loaded settings
@@ -256,7 +294,31 @@ with gr.Blocks() as demo:
                     pass
                 
                 with gr.TabItem("Generate Configuration"):
-                    pass
+                    with gr.Column():
+                        voice_name = gr.Dropdown(label="Voice Name", choices=train_list) # Implement auto folder detection 
+                        save_freq = gr.Slider(label="Save Frequency", minimum=1, maximum=1000, value=10, step=1)
+                        log_interval = gr.Slider(label="Log Interval", minimum=1, maximum=100, step=1, value=10)
+                        epochs = gr.Slider(label="Epochs", minimum=1, maximum=100, step=1, value=40)
+                        batch_size = gr.Slider(label="Batch Size", minimum=1, maximum=100, step=1, value=2)
+                        max_len = gr.Slider(label="Max Length", minimum=50, maximum=1000, step=10, value=250)
+                        pretrained_model = gr.Textbox(label="Pretrained Model", value=r"models\pretrain_base_1\epochs_2nd_00020.pth")
+                        load_only_params = gr.Checkbox(value=True, label="Load Only Params")
+                        F0_path = gr.Textbox(label="F0 Path", value=r"Utils\JDC\bst.t7")
+                        ASR_config = gr.Textbox(label="ASR Config", value=r"Utils\ASR\config.yml")
+                        ASR_path = gr.Textbox(label="ASR Path", value=r"Utils\ASR\epoch_00080.pth")
+                        PLBERT_dir = gr.Textbox(label="PLBERT Directory", value=r"Utils\PLBERT")
+                        train_data = gr.Textbox(label="Train Data", placeholder="Enter train data path")
+                        val_data = gr.Textbox(label="Validation Data", placeholder="Enter validation data path")
+                        root_path = gr.Textbox(label="Root Path", placeholder="Enter root path")
+                        diff_epoch = gr.Number(label="Diffusion Epoch", value=0)
+                        joint_epoch = gr.Number(label="Joint Epoch", value=0)
+                        
+                        update_config_button = gr.Button("Update Configuration")
+                        update_config_button.click(update_config, inputs=[
+                            voice_name, save_freq, log_interval, epochs, batch_size, max_len, pretrained_model,
+                            load_only_params, F0_path, ASR_config, ASR_path, PLBERT_dir, train_data, val_data,
+                            root_path, diff_epoch, joint_epoch], outputs=gr.Textbox(label="Update Status"))
+
                 
                 with gr.TabItem("Run Training"):
                     pass
