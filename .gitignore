@@ -2,3 +2,4 @@
 results/
 venv/
 __pycache__/
+.vscode/
