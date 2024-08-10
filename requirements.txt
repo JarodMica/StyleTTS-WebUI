@@ -15,4 +15,8 @@ typing
 typing-extensions
 phonemizer
 gradio
+pysrt
+tensorboard
+
+git+https://github.com/m-bain/whisperx.git
 git+https://github.com/resemble-ai/monotonic_align.git
