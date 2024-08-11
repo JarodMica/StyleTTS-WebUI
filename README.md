@@ -52,10 +52,15 @@ git submodule update --remote
 ```
 pip install .\modules\StyleTTS2\
 ```
-9. Run the StyleTTS2 Webui
+9. Download the pretrained StyleTTS2 Model here:https://huggingface.co/yl4579/StyleTTS2-LibriTTS/tree/main/Models/LibriTTS.  You'll need to place it into the folder ```pretrain_base_1``` inside of the ```models``` folder.  The file structure should look like the below.
+```
+models\pretrain_base_1\epochs_2nd_00020.pth
+```
+10.. Run the StyleTTS2 Webui
 ```
 python webui.py
 ```
+
 
 
 

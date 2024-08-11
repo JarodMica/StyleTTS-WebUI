@@ -37,7 +37,13 @@ to_mel = None
 
 def load_all_models(voice, model_path=None):
     global global_phonemizer, model, model_params, sampler, textcleaner, to_mel
-    config = load_configurations(get_model_configuration(voice))
+    
+    model_config = (get_model_configuration(voice))
+    if not model_config:
+        return None
+    
+    config = load_configurations(model_config)
+    
     if not model_path:
         model_path = load_voice_model(voice)
     sigma_value = config['model_params']['diffusion']['dist']['sigma_data']
@@ -64,8 +70,10 @@ def get_file_path(root_path, voice, file_extension, error_message):
     raise gr.Error(error_message)
 
 def get_model_configuration(voice):
-    return get_file_path(root_path="Models", voice=voice, file_extension=".yml",error_message= "No configuration for Model specified located")
-
+    try:
+        return get_file_path(root_path="Models", voice=voice, file_extension=".yml",error_message= "No configuration for Model specified located")
+    except:
+        return None
 def load_voice_model(voice):
     return get_file_path(root_path="Models", voice=voice, file_extension=".pth", error_message="No TTS model found in specified location")
 
@@ -126,16 +134,21 @@ def get_reference_audio_list(voice_name, root="voices"):
 def get_voice_models(voice):
     model_root = "Models"
     model_path = os.path.join(model_root,voice)
-    model_list = [model_name for model_name in os.listdir(model_path) if model_name.endswith(".pth")]
-    return model_list
-
+    if os.path.exists(model_path):
+        model_list = [model_name for model_name in os.listdir(model_path) if model_name.endswith(".pth")]
+        return model_list
+    else:
+        return None
+    
 def update_reference_audio(voice):
     return gr.Dropdown(choices=get_reference_audio_list(voice), value=get_reference_audio_list(voice)[0])
 
 def update_voice_model(voice, model_name):
     gr.Info("Wait for models to load...")
     model_path = get_models_path(voice, model_name)
-    load_all_models(voice=voice, model_path=model_path)
+    loaded_check = load_all_models(voice=voice, model_path=model_path)
+    if loaded_check == None:
+            raise gr.Warning("No model or model configuration loaded, check model config file is present")
     gr.Info("Models finished loading")
 
 def get_models_path(voice, model_name, root="Models"):
@@ -146,11 +159,13 @@ def update_voice_settings(voice):
         gr.Info("Wait for models to load...")
         model_name = get_voice_models(voice)    
         model_path = get_models_path(voice, model_name[0])   
-        load_all_models(voice, model_path=model_path)
+        loaded_check = load_all_models(voice, model_path=model_path)
+        if loaded_check == None:
+            gr.Warning("No model or model configuration loaded, check model config file is present")
         ref_aud_path = update_reference_audio(voice)
         
         gr.Info("Models finished loading")
-        return ref_aud_path, gr.Dropdown(choices=model_name, value=model_name[0])
+        return ref_aud_path, gr.Dropdown(choices=model_name, value=model_name[0] if model_name else None)
     except:
         gr.Warning("No models found for the chosen voice chosen, new models not loaded")
         ref_aud_path = update_reference_audio(voice)
