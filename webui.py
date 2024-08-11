@@ -161,10 +161,19 @@ def load_settings():
         with open(SETTINGS_FILE_PATH, "r") as f:
             return yaml.safe_load(f)
     except FileNotFoundError:
-        return {
+        if reference_audio_list:
+            reference_file = reference_audio_list[0]
+        else:
+            reference_file = None
+        if voice_list_with_defaults:
+            voice = voice_list_with_defaults[0]
+        else:
+            voice = None
+         
+        settings_list = {
             "text": "Hello there!",
-            "voice": voice_list_with_defaults[0],
-            "reference_audio_file": reference_audio_list[0],
+            "voice": voice,
+            "reference_audio_file": reference_file,
             "seed" : "-1",
             "alpha": 0.3,
             "beta": 0.7,
@@ -172,6 +181,7 @@ def load_settings():
             "embedding_scale": 1.0,
             "voice_model" : ""
         }
+        return settings_list
 
 def save_settings(settings):
     with open(SETTINGS_FILE_PATH, "w") as f:
@@ -424,13 +434,23 @@ def archive_dataset(voice):
 
 voice_list_with_defaults = get_voice_list(append_defaults=True)
 datasets_list = get_voice_list(get_voice_dir("datasets"), append_defaults=True)
-reference_audio_list = get_reference_audio_list(voice_list_with_defaults[0])
-train_list = get_folder_list(root="training")
+if voice_list_with_defaults:
+    reference_audio_list = get_reference_audio_list(voice_list_with_defaults[0])
+    train_list = get_folder_list(root="training")
+else:
+    reference_audio_list = None
+    voice_list_with_default = None
+    train_list = None
 
 def main():
     initial_settings = load_settings()
-    load_all_models(initial_settings["voice"])
-    list_of_models = get_voice_models(voice=initial_settings["voice"])
+    if voice_list_with_defaults:
+        load_all_models(initial_settings["voice"])
+        list_of_models = get_voice_models(voice=initial_settings["voice"])
+        ref_audio_file_choices = get_reference_audio_list(initial_settings["voice"])
+    else:
+        list_of_models = None
+        ref_audio_file_choices = None
 
     with gr.Blocks() as demo:
         with gr.Tabs():
@@ -447,7 +467,7 @@ def main():
                                 choices=list_of_models, label="Voice Models", type="value", value=initial_settings["voice_model"])
                             
                             GENERATE_SETTINGS["reference_audio_file"] = gr.Dropdown(
-                                choices=get_reference_audio_list(initial_settings["voice"]), label="Reference Audio", type="value", value=initial_settings["reference_audio_file"]
+                                choices=ref_audio_file_choices, label="Reference Audio", type="value", value=initial_settings["reference_audio_file"]
                             )
                         with gr.Column():
                             GENERATE_SETTINGS["seed"] = gr.Textbox(
@@ -610,12 +630,17 @@ def main():
                         with gr.Column():
                             with gr.Row():
                                 with gr.Column():
+                                    if train_list:
+                                        training_dir = os.path.exists(os.path.join(TRAINING_DIR, train_list[0]))
+                                        train_data_path = os.path.join(TRAINING_DIR, train_list[0], "train_phoneme.txt") if os.path.exists(os.path.join(training_dir, "train_phoneme.txt")) else ""
+                                        val_data_path = os.path.join(TRAINING_DIR, train_list[0], "validation_phoneme.txt") if os.path.exists(os.path.join(training_dir, "validation_phoneme.txt")) else ""
+                                        audio_data_path = os.path.join(TRAINING_DIR, train_list[0], "audio") if os.path.exists(os.path.join(TRAINING_DIR, train_list[0], "audio")) else ""
+                                    else:
+                                        train_data_path = None
+                                        val_data_path = None
+                                        audio_data_path = None
                                     
-                                    train_data_path = os.path.join(TRAINING_DIR, train_list[0], "train_phoneme.txt") if os.path.exists(os.path.join(TRAINING_DIR, train_list[0], "train_phoneme.txt")) else ""
-                                    val_data_path = os.path.join(TRAINING_DIR, train_list[0], "validation_phoneme.txt") if os.path.exists(os.path.join(TRAINING_DIR, train_list[0], "validation_phoneme.txt")) else ""
-                                    audio_data_path = os.path.join(TRAINING_DIR, train_list[0], "audio") if os.path.exists(os.path.join(TRAINING_DIR, train_list[0], "audio")) else ""
-                                    
-                                    voice_name = gr.Dropdown(label="Voice Name", choices=train_list, value=train_list[0]) 
+                                    voice_name = gr.Dropdown(label="Voice Name", choices=train_list, value=train_list[0] if train_list else None) 
                                     refresh_available_config_button = gr.Button(value="Refresh Available")
                                     save_freq = gr.Slider(label="Save Frequency", minimum=1, maximum=1000, value=10, step=1)
                                     log_interval = gr.Slider(label="Log Interval", minimum=1, maximum=100, step=1, value=10)
@@ -674,7 +699,7 @@ def main():
                     with gr.TabItem("Run Training"):
                         with gr.Row():
                             with gr.Column():
-                                training_voice_name = gr.Dropdown(label="Voice Name", choices=train_list, value=train_list[0])
+                                training_voice_name = gr.Dropdown(label="Voice Name", choices=train_list, value=train_list[0] if train_list else None)
                                 refresh_available_config_button_2 = gr.Button(value="Refresh Available")
                             with gr.Column():
                                 training_console = gr.Textbox(label="Training Console")
