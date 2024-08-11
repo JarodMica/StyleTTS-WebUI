@@ -52,6 +52,11 @@ git submodule update --remote
 ```
 pip install .\modules\StyleTTS2\
 ```
+9. Run the StyleTTS2 Webui
+```
+python webui.py
+```
+
 
 
 
