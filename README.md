@@ -56,6 +56,10 @@ pip install .\modules\StyleTTS2\
 ```
 models\pretrain_base_1\epochs_2nd_00020.pth
 ```
+10. Install nltk by running the below python script:
+```
+python .\modules\StyleTTS2\styletts2\download_punkt.py
+```
 10.. Run the StyleTTS2 Webui
 ```
 python webui.py

@@ -57,7 +57,8 @@ def load_all_models(voice, model_path=None):
         n_mels=80, n_fft=2048, win_length=1200, hop_length=300)
     
     load_pretrained_model(model, model_path=model_path)
-
+    return False
+    
 def get_file_path(root_path, voice, file_extension, error_message):
     model_path = os.path.join(root_path, voice)
     if not os.path.exists(model_path):
@@ -147,11 +148,11 @@ def update_voice_model(voice, model_name):
     gr.Info("Wait for models to load...")
     model_path = get_models_path(voice, model_name)
     loaded_check = load_all_models(voice=voice, model_path=model_path)
-    if loaded_check == None:
-            raise gr.Warning("No model or model configuration loaded, check model config file is present")
+    if loaded_check:
+        raise gr.Warning("No model or model configuration loaded, check model config file is present")
     gr.Info("Models finished loading")
 
-def get_models_path(voice, model_name, root="Models"):
+def get_models_path(voice, model_name, root="models"):
     return os.path.join(root, voice, model_name)
 
 def update_voice_settings(voice):
@@ -646,7 +647,7 @@ def main():
                             with gr.Row():
                                 with gr.Column():
                                     if train_list:
-                                        training_dir = os.path.exists(os.path.join(TRAINING_DIR, train_list[0]))
+                                        training_dir = os.path.join(TRAINING_DIR, train_list[0])
                                         train_data_path = os.path.join(TRAINING_DIR, train_list[0], "train_phoneme.txt") if os.path.exists(os.path.join(training_dir, "train_phoneme.txt")) else ""
                                         val_data_path = os.path.join(TRAINING_DIR, train_list[0], "validation_phoneme.txt") if os.path.exists(os.path.join(training_dir, "validation_phoneme.txt")) else ""
                                         audio_data_path = os.path.join(TRAINING_DIR, train_list[0], "audio") if os.path.exists(os.path.join(TRAINING_DIR, train_list[0], "audio")) else ""

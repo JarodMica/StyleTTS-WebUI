@@ -4,7 +4,7 @@ torch
 pydub
 pyyaml
 librosa
-nltk
+nltk==3.8.1
 matplotlib
 accelerate
 transformers
