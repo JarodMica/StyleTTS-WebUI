@@ -13,6 +13,7 @@ import multiprocessing
 import shutil
 from datetime import datetime
 from datetime import timedelta
+import glob
 import webbrowser
 
 from styletts2.utils import *
@@ -35,17 +36,16 @@ sampler = None
 textcleaner = None
 to_mel = None
 
-def load_all_models(voice, model_path=None):
+def load_all_models(model_path):
     global global_phonemizer, model, model_params, sampler, textcleaner, to_mel
     
-    model_config = (get_model_configuration(voice))
+    model_config = (get_model_configuration(model_path))
     if not model_config:
         return None
     
     config = load_configurations(model_config)
     
-    if not model_path:
-        model_path = load_voice_model(voice)
+    
     sigma_value = config['model_params']['diffusion']['dist']['sigma_data']
     
     model, model_params = load_models_webui(sigma_value, device)
@@ -70,11 +70,15 @@ def get_file_path(root_path, voice, file_extension, error_message):
     
     raise gr.Error(error_message)
 
-def get_model_configuration(voice):
-    try:
-        return get_file_path(root_path="Models", voice=voice, file_extension=".yml",error_message= "No configuration for Model specified located")
-    except:
-        return None
+def get_model_configuration(model_path):
+    base_directory, _ = os.path.split(model_path)
+    for file in os.listdir(base_directory):
+        if file.endswith(".yml"):
+            configuration_path = os.path.join(base_directory, file)
+            return configuration_path
+    
+    raise gr.Error("No configuration file found in the model folder")
+    
 def load_voice_model(voice):
     return get_file_path(root_path="Models", voice=voice, file_extension=".pth", error_message="No TTS model found in specified location")
 
@@ -132,22 +136,31 @@ def get_reference_audio_list(voice_name, root="voices"):
     reference_directory_list = os.listdir(os.path.join(root, voice_name))
     return reference_directory_list
 
-def get_voice_models(voice):
-    model_root = "Models"
-    model_path = os.path.join(model_root,voice)
-    if os.path.exists(model_path):
-        model_list = [model_name for model_name in os.listdir(model_path) if model_name.endswith(".pth")]
-        return model_list
-    else:
-        return None
+def get_voice_models():
+    folders_to_browse = ["training", "models"]
+    
+    model_list = []
+
+    for folder in folders_to_browse:
+        # Construct the search pattern
+        search_pattern = os.path.join(folder, '**', '*.pth')
+        # Use glob to find all matching files, recursively search in subfolders
+        matching_files = glob.glob(search_pattern, recursive=True)
+        # Extend the model_list with the found files
+        model_list.extend(matching_files)
+        
+    return model_list
+        
     
 def update_reference_audio(voice):
     return gr.Dropdown(choices=get_reference_audio_list(voice), value=get_reference_audio_list(voice)[0])
 
-def update_voice_model(voice, model_name):
+def update_voice_model(model_path):
     gr.Info("Wait for models to load...")
-    model_path = get_models_path(voice, model_name)
-    loaded_check = load_all_models(voice=voice, model_path=model_path)
+    # model_path = get_models_path(voice, model_name)
+    path_components = model_path.split(os.path.sep)
+    voice = path_components[1]
+    loaded_check = load_all_models(model_path=model_path)
     if loaded_check:
         raise gr.Warning("No model or model configuration loaded, check model config file is present")
     gr.Info("Models finished loading")
@@ -157,16 +170,16 @@ def get_models_path(voice, model_name, root="models"):
 
 def update_voice_settings(voice):
     try:
-        gr.Info("Wait for models to load...")
-        model_name = get_voice_models(voice)    
-        model_path = get_models_path(voice, model_name[0])   
-        loaded_check = load_all_models(voice, model_path=model_path)
-        if loaded_check == None:
-            gr.Warning("No model or model configuration loaded, check model config file is present")
+        # gr.Info("Wait for models to load...")
+        # model_name = get_voice_models(voice)    
+        # model_path = get_models_path(voice, model_name[0])   
+        # loaded_check = load_all_models(model_path=model_path)
+        # if loaded_check == None:
+        #     gr.Warning("No model or model configuration loaded, check model config file is present")
         ref_aud_path = update_reference_audio(voice)
         
-        gr.Info("Models finished loading")
-        return ref_aud_path, gr.Dropdown(choices=model_name, value=model_name[0] if model_name else None)
+        # gr.Info("Models finished loading")
+        return ref_aud_path #gr.Dropdown(choices=model_name, value=model_name[0] if model_name else None)
     except:
         gr.Warning("No models found for the chosen voice chosen, new models not loaded")
         ref_aud_path = update_reference_audio(voice)
@@ -195,7 +208,7 @@ def load_settings():
             "beta": 0.7,
             "diffusion_steps": 30,
             "embedding_scale": 1.0,
-            "voice_model" : ""
+            "voice_model" : "models\pretrain_base_1\epochs_2nd_00020.pth"
         }
         return settings_list
 
@@ -385,7 +398,8 @@ def transcribe_other_language_proxy(voice, language, chunk_size, continuation_di
                         whisper_model=whisper_model,
                         srt_multiprocessing=srt_multiprocessing,
                         ext=ext,
-                        speaker_id=speaker_id
+                        speaker_id=speaker_id,
+                        sr_rate=24000
                         )
     progress(0.7, desc="Audio processing completed")
 
@@ -461,11 +475,11 @@ else:
 def main():
     initial_settings = load_settings()
     if voice_list_with_defaults:
-        load_all_models(initial_settings["voice"])
-        list_of_models = get_voice_models(voice=initial_settings["voice"])
+        load_all_models(initial_settings["voice_model"])
+        
         ref_audio_file_choices = get_reference_audio_list(initial_settings["voice"])
     else:
-        list_of_models = None
+        # list_of_models = None
         ref_audio_file_choices = None
 
     with gr.Blocks() as demo:
@@ -479,8 +493,7 @@ def main():
                             GENERATE_SETTINGS["voice"] = gr.Dropdown(
                                 choices=voice_list_with_defaults, label="Voice", type="value", value=initial_settings["voice"])
                             
-                            GENERATE_SETTINGS["voice_model"] = gr.Dropdown(
-                                choices=list_of_models, label="Voice Models", type="value", value=initial_settings["voice_model"])
+                            
                             
                             GENERATE_SETTINGS["reference_audio_file"] = gr.Dropdown(
                                 choices=ref_audio_file_choices, label="Reference Audio", type="value", value=initial_settings["reference_audio_file"]
@@ -514,26 +527,11 @@ def main():
                         update_button = gr.Button("Update Voices")
                         generate_button = gr.Button("Generate")
                     
-                    generate_button.click(generate_audio, 
-                                        inputs=[GENERATE_SETTINGS["text"],
-                                                GENERATE_SETTINGS["voice"],
-                                                GENERATE_SETTINGS["reference_audio_file"],
-                                                GENERATE_SETTINGS["seed"],
-                                                GENERATE_SETTINGS["alpha"],
-                                                GENERATE_SETTINGS["beta"],
-                                                GENERATE_SETTINGS["diffusion_steps"],
-                                                GENERATE_SETTINGS["embedding_scale"],
-                                                GENERATE_SETTINGS["voice_model"]], 
-                                        outputs=[generation_output, seed_output])
                     
-                    GENERATE_SETTINGS["voice"].change(fn=update_voice_settings, 
-                                inputs=GENERATE_SETTINGS["voice"], 
-                                outputs=[GENERATE_SETTINGS["reference_audio_file"],
-                                         GENERATE_SETTINGS["voice_model"]])
                     
-                    GENERATE_SETTINGS["voice_model"].change(fn=update_voice_model,
-                                inputs=[GENERATE_SETTINGS["voice"],
-                                        GENERATE_SETTINGS["voice_model"]])
+
+                    
+                    
             
             with gr.TabItem("Training"):
                 with gr.Tabs():
@@ -669,8 +667,6 @@ def main():
                                     diff_epoch = gr.Number(label="Diffusion Epoch", value=0)
                                     joint_epoch = gr.Number(label="Joint Epoch", value=0)
                                     
-                                    update_config_button = gr.Button("Update Configuration")
-                                    
                                 with gr.Column():
                                     F0_path = gr.Textbox(label="F0 Path", value=r"Utils\JDC\bst.t7")
                                     ASR_config = gr.Textbox(label="ASR Config", value=r"Utils\ASR\config.yml")
@@ -679,6 +675,8 @@ def main():
                                     train_data = gr.Textbox(label="Train Data", placeholder="Enter train data path", value=train_data_path)
                                     val_data = gr.Textbox(label="Validation Data", placeholder="Enter validation data path", value=val_data_path)
                                     root_path = gr.Textbox(label="Root Path", placeholder="Enter root path", value=audio_data_path)
+                                    
+                            update_config_button = gr.Button("Update Configuration")
                                 
                             status_box = gr.Textbox(label="Update Status")    
                     
@@ -768,10 +766,31 @@ def main():
                             ])
             
             with gr.TabItem("Settings"):
-                settings_input = gr.Textbox(label="Enter setting value")
-                settings_output = gr.Textbox(label="Settings Output", interactive=False)
-                settings_button = gr.Button("Update Settings")
-                settings_button.click(update_settings, inputs=settings_input, outputs=settings_output)
+                list_of_models = get_voice_models()
+                GENERATE_SETTINGS["voice_model"] = gr.Dropdown(
+                    choices=list_of_models, label="Voice Models", type="value", value=initial_settings["voice_model"])
+                
+                
+                GENERATE_SETTINGS["voice_model"].change(fn=update_voice_model,
+                                inputs=[GENERATE_SETTINGS["voice_model"]])
+                
+                GENERATE_SETTINGS["voice"].change(fn=update_voice_settings, 
+                                        inputs=GENERATE_SETTINGS["voice"], 
+                                        outputs=[GENERATE_SETTINGS["reference_audio_file"]]
+                                                    )
+                generate_button.click(generate_audio, 
+                                        inputs=[GENERATE_SETTINGS["text"],
+                                                GENERATE_SETTINGS["voice"],
+                                                GENERATE_SETTINGS["reference_audio_file"],
+                                                GENERATE_SETTINGS["seed"],
+                                                GENERATE_SETTINGS["alpha"],
+                                                GENERATE_SETTINGS["beta"],
+                                                GENERATE_SETTINGS["diffusion_steps"],
+                                                GENERATE_SETTINGS["embedding_scale"],
+                                                GENERATE_SETTINGS["voice_model"]], 
+                                        outputs=[generation_output, seed_output])
+                
+                
 
     demo.launch()
 

@@ -14,9 +14,9 @@ Will be available to YouTube members.  No pre-requisites other than GPU needed
 
 ### Manual Installation
 **Prerequisites**
-- Python 3.11
-- git cmd tool:
-- vscode or some other IDE
+- Python 3.11: https://www.python.org/downloads/release/python-3119/
+- git cmd tool: https://git-scm.com/
+- vscode or some other IDE (optional)
 - Nvidia Graphics Card
 1. Clone the repository
   ```
@@ -39,9 +39,10 @@ py -3.11 -m venv venv
 pip install -r .\requirements.txt
 ```
 6. Uninstall and reinstall torch manually as windows does not particularly like just installing torch, you need to install prebuilt wheels.
+> **NOTE:** torch installed with 2.4.0 or higher was causing issues with cudnn and cublas dlls not being found (presumed due to ctranslate2).  Make sure you use 2.3.1 as specified in the command below.
 ```
 pip uninstall torch
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
 ```
 7. Initialize submodules in the repository
 ```
@@ -52,11 +53,12 @@ git submodule update --remote
 ```
 pip install .\modules\StyleTTS2\
 ```
-9. Download the pretrained StyleTTS2 Model here:https://huggingface.co/yl4579/StyleTTS2-LibriTTS/tree/main/Models/LibriTTS.  You'll need to place it into the folder ```pretrain_base_1``` inside of the ```models``` folder.  The file structure should look like the below.
+9. Download the pretrained StyleTTS2 Model and yaml here:https://huggingface.co/yl4579/StyleTTS2-LibriTTS/tree/main/Models/LibriTTS.  You'll need to place them into the folder ```pretrain_base_1``` inside of the ```models``` folder.  The file structure should look like the below.
 ```
 models\pretrain_base_1\epochs_2nd_00020.pth
+models\pretrain_base_1\config.yml
 ```
-10. Install nltk by running the below python script:
+10. Download punkt by running the below python script:
 ```
 python .\modules\StyleTTS2\styletts2\download_punkt.py
 ```
