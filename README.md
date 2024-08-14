@@ -94,12 +94,13 @@ Here are some that I came across:
 
 ### Running StyleTTS2
 1. torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate xx.xx MiB. GPU
-- Your GPU doesn't have enough VRAM for the configurations you saved for training a voice.  Lower batch size to 1, try again.  If not, then lower Max Length in intervals of 50 till it either works or reachs 100 for Max Length.  
-
+  - Your GPU doesn't have enough VRAM for the configurations you saved for training a voice.  Lower batch size to 1, try again.  If not, then lower Max Length in intervals of 50 till it either works or reachs 100 for Max Length.
+  - If you hit 100 for Max Length and you still run into issues, set "Diffusion Epoch" and "Joint Epoch" to values that are higher than what you set "Epochs" to.  This disables diffusion and joint training, but the output quality on inference (generation) might suffer.
+  - There's a discussion here that talks more about these settings: https://github.com/yl4579/StyleTTS2/discussions/81
 2. Training is VERY slow
-- Open task manager and check how much VRAM is being used by going to the performance tab and clicking on GPU.  If you notice that "Dedicated GPU memory" is full, and that "GPU memory" usage is higher than "Dedicated GPU memory", training data is overflowing onto your CPU RAM which will severly hurt training speeds.
-- Two things:
-  1. Your GPU cannot handle the bare minimum training requirements for StyleTTS2, there's no solution other than upgrading to more VRAM
-  2. Continue training, just at the slower rate.
-    - It should finish, but may take 2-10x the time that it would normally take if you could fit it all into VRAM
+  - Open task manager and check how much VRAM is being used by going to the performance tab and clicking on GPU.  If you notice that "Dedicated GPU memory" is full, and that "GPU memory" usage is higher than "Dedicated GPU memory" or "Shared GPU memory" is being used, training data is overflowing onto your CPU RAM which will severly hurt training speeds.
+  - Two things:
+    1. Your GPU cannot handle the bare minimum training requirements for StyleTTS2, there's no solution other than upgrading to more VRAM.
+    2. Continue training, just at the slower rate.
+      - It should finish, but may take 2-10x the time that it would normally take if you could fit it all into VRAM
 
