@@ -9,10 +9,12 @@ An all-in-one inferencing and training WebUI for StyleTTS.  The intended compatb
 ✔️ Training tab with tensorboard monitoring available
 
 ## Setup
+There is no Linux or Mac set-up at the moment.
+
 ### Windows Package
 Will be available to YouTube members.  No pre-requisites other than GPU needed
 
-### Manual Installation
+### Manual Installation (Windows only)
 **Prerequisites**
 - Python 3.11: https://www.python.org/downloads/release/python-3119/
 - git cmd tool: https://git-scm.com/
@@ -60,7 +62,7 @@ models\pretrain_base_1\config.yml
 ```
 
 10. Install eSpeak-NG onto your computer.  Head over to https://github.com/espeak-ng/espeak-ng/releases and select the ```espeak-ng-X64.msi``` the assets dropdown.  Download, run, and follow the prompts to set it up on your device.  As of this write-up, it'll be at the bottom of 1.51 on the github releases page
-
+> You can remove the program by going to "Add or remove programs" on your computer, then searching for espeak.
 11. Download punkt by running the below python script:
 ```
 python .\modules\StyleTTS2\styletts2\download_punkt.py
