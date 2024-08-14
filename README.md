@@ -58,11 +58,14 @@ pip install .\modules\StyleTTS2\
 models\pretrain_base_1\epochs_2nd_00020.pth
 models\pretrain_base_1\config.yml
 ```
-10. Download punkt by running the below python script:
+
+10. Install eSpeak-NG onto your computer.  Head over to https://github.com/espeak-ng/espeak-ng/releases and select the ```espeak-ng-X64.msi``` the assets dropdown.  Download, run, and follow the prompts to set it up on your device.  As of this write-up, it'll be at the bottom of 1.51 on the github releases page
+
+11. Download punkt by running the below python script:
 ```
 python .\modules\StyleTTS2\styletts2\download_punkt.py
 ```
-10.. Run the StyleTTS2 Webui
+12.. Run the StyleTTS2 Webui
 ```
 python webui.py
 ```
