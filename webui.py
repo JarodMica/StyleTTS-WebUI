@@ -5,7 +5,7 @@ Things that I need to work on:
 '''
 
 import os
-
+import sys
 if os.path.exists("runtime"):
     # Get the directory where the script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +20,6 @@ import time
 import yaml
 import multiprocessing
 import shutil
-import sys
 from datetime import datetime
 from datetime import timedelta
 import glob
