@@ -4,8 +4,17 @@ Things that I need to work on:
 
 '''
 
-import gradio as gr
 import os
+
+if os.path.exists("runtime"):
+    # Get the directory where the script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Add this directory to sys.path
+    if script_dir not in sys.path:
+        sys.path.insert(0, script_dir)
+
+import gradio as gr
 import torch
 import time
 import yaml
@@ -20,14 +29,6 @@ import webbrowser
 from styletts2.utils import *
 from modules.tortoise_dataset_tools.dataset_whisper_tools.dataset_maker_large_files import *
 from modules.tortoise_dataset_tools.dataset_whisper_tools.combine_folders import *
-
-if os.path.exists("runtime"):
-    # Get the directory where the script is located
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Add this directory to sys.path
-    if script_dir not in sys.path:
-        sys.path.insert(0, script_dir)
 
 # Path to the settings file
 SETTINGS_FILE_PATH = "Configs/generate_settings.yaml"
