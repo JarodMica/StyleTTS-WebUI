@@ -214,7 +214,7 @@ def load_settings():
             voice = None
          
         settings_list = {
-            "text": "Hello there!",
+            "text": "Inferencing with this sentence, just to make sure things work!",
             "voice": voice,
             "reference_audio_file": reference_file,
             "seed" : "-1",
