@@ -1,11 +1,13 @@
 '''
 Things that I need to work on:
     - Need to unload previous model before loading new one
+    - Model loading needs work
 
 '''
 
 import os
 import sys
+
 if os.path.exists("runtime"):
     # Get the directory where the script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -13,6 +15,8 @@ if os.path.exists("runtime"):
     # Add this directory to sys.path
     if script_dir not in sys.path:
         sys.path.insert(0, script_dir)
+    espeak_path = os.path.join(os.path.dirname(__file__), 'espeak NG')
+    os.environ['ESPEAK_DATA_PATH'] = espeak_path
 
 import gradio as gr
 import torch
@@ -588,7 +592,7 @@ def main():
 
                             with gr.Row(visible=False) as advanced_settings_row:
                                 DATASET_SETTINGS["srt_multiprocessing"] = gr.Checkbox(
-                                    label="Disable if dataset files are < 20s", value=False
+                                    label="Disable if dataset files are < 20s", value=True
                                 )
                                 DATASET_SETTINGS["ext"] = gr.Dropdown(
                                     label="Audio Extension", value="wav", choices=["wav", "mp3"]
