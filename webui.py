@@ -90,7 +90,7 @@ def get_model_configuration(model_path):
     raise gr.Error("No configuration file found in the model folder")
     
 def load_voice_model(voice):
-    return get_file_path(root_path="Models", voice=voice, file_extension=".pth", error_message="No TTS model found in specified location")
+    return get_file_path(root_path="models", voice=voice, file_extension=".pth", error_message="No TTS model found in specified location")
 
 def generate_audio(text, voice, reference_audio_file, seed, alpha, beta, diffusion_steps, embedding_scale, voice_model, voices_root="voices",):
     original_seed = int(seed)
