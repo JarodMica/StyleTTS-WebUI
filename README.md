@@ -20,6 +20,7 @@ Will be available to YouTube members.  No pre-requisites other than GPU needed
 - git cmd tool: https://git-scm.com/
 - vscode or some other IDE (optional)
 - Nvidia Graphics Card (12gb VRAM is the bare minimum for training at decent speed, see below troubleshooting for more information)
+- Microsoft build tools, follow: https://stackoverflow.com/questions/64261546/how-to-solve-error-microsoft-visual-c-14-0-or-greater-is-required-when-inst/64262038#64262038
 1. Clone the repository
   ```
 git clone https://github.com/JarodMica/StyleTTS-WebUI.git
