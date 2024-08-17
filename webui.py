@@ -24,6 +24,7 @@ from datetime import datetime
 from datetime import timedelta
 import glob
 import webbrowser
+import socket
 
 from styletts2.utils import *
 from modules.tortoise_dataset_tools.dataset_whisper_tools.dataset_maker_large_files import *
@@ -287,7 +288,7 @@ def load_whisper_model(language=None, model_name=None, progress=None):
         device = "cuda" 
     else:
         raise gr.Error("Non-Nvidia GPU detected, or CUDA not available")
-    whisper_model = whisperx.load_model(model_name, device)
+    whisper_model = whisperx.load_model(model_name, device, download_root="whisper_models")
     # whisper_align_model = whisperx.load_align_model(model_name="WAV2VEC2_ASR_LARGE_LV60K_960H" if language=="en" else None, language_code=language, device=device)
     print("Loaded Whisper model")
     return whisper_model
@@ -480,6 +481,10 @@ else:
     reference_audio_list = None
     voice_list_with_default = None
     train_list = None
+    
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        return sock.connect_ex(('localhost', port)) == 0
 
 def main():
     initial_settings = load_settings()
@@ -704,12 +709,7 @@ def main():
                         return "Training Complete!"
 
                     def launch_tensorboard_proxy():
-                        import socket
                         port = 6006
-                        
-                        def is_port_in_use(port):
-                            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                                return sock.connect_ex(('localhost', port)) == 0
         
                         if is_port_in_use(port):
                             gr.Warning(f"Port {port} is already in use. Skipping TensorBoard launch.")
@@ -778,7 +778,17 @@ def main():
                 list_of_models = get_voice_models()
                 GENERATE_SETTINGS["voice_model"] = gr.Dropdown(
                     choices=list_of_models, label="Voice Models", type="value", value=initial_settings["voice_model"])
+                refresh_models_available_button = gr.Button(
+                    value="Refresh Models Available"
+                )
                 
+                def update_models():
+                    list_of_models = get_voice_models()
+                    return gr.Dropdown(choices=list_of_models)
+                
+                refresh_models_available_button.click(fn=update_models,
+                                                      outputs=GENERATE_SETTINGS["voice_model"]
+                )
                 
                 GENERATE_SETTINGS["voice_model"].change(fn=update_voice_model,
                                 inputs=[GENERATE_SETTINGS["voice_model"]])
@@ -798,9 +808,17 @@ def main():
                                                 GENERATE_SETTINGS["embedding_scale"],
                                                 GENERATE_SETTINGS["voice_model"]], 
                                         outputs=[generation_output, seed_output])
-                
-                
-
+       
+    webui_port = None         
+    while webui_port == None:
+        for i in range (7860, 7865):
+            if is_port_in_use(i):
+                print(f"Port {i} is in use, moving 1 up")
+            else:
+                webui_port = i
+                break
+    
+    webbrowser.open(f"http://localhost:{webui_port}")
     demo.launch()
 
 if __name__ == "__main__":
