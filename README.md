@@ -9,22 +9,28 @@ An all-in-one inferencing and training WebUI for StyleTTS.  The intended compatb
 ✔️ Training tab with tensorboard monitoring available
 
 ## Setup
-There is no Linux or Mac set-up at the moment.
+There is no Linux or Mac set-up at the moment. However, I think the set-up on linux isn't too convoluted as it doesn't require any code modifications, just installation modifications.  I believe you do not need to uninstall and reinstall torch and then the back slashes should be replaced with forward slashes in the commands below.
 
 ### Windows Package
-Will be available to YouTube members.  No pre-requisites other than GPU needed
+Is available for Youtube Channel Members at the Super Supporter level: https://www.youtube.com/channel/UCwNdsF7ZXOlrTKhSoGJPnlQ/join
+
+**Minimum Requirements**
+- Nvidia Graphics Card (12GB VRAM is the minimum recommendation for training at a decent speed, 8GB possible though, albeit very slow. See below troubleshooting for more information)
+- Windows 10/11
+1. After downloading the zip file, unzip it.
+2. Launch the webui with launch_webui.bat
 
 ### Manual Installation (Windows only)
 **Prerequisites**
 - Python 3.11: https://www.python.org/downloads/release/python-3119/
 - git cmd tool: https://git-scm.com/
 - vscode or some other IDE (optional)
-- Nvidia Graphics Card (12gb VRAM is the bare minimum for training at decent speed, see below troubleshooting for more information)
+- Nvidia Graphics Card (12GB VRAM is the minimum recommendation for training at a decent speed, 8GB possible though, albeit very slow. See below troubleshooting for more information)
 - Microsoft build tools, follow: https://stackoverflow.com/questions/64261546/how-to-solve-error-microsoft-visual-c-14-0-or-greater-is-required-when-inst/64262038#64262038
 1. Clone the repository
-  ```
+```
 git clone https://github.com/JarodMica/StyleTTS-WebUI.git
-  ```
+```
 2. Navigate into the repo
 ```
 cd .\StyleTTS-WebUI\
@@ -37,7 +43,7 @@ py -3.11 -m venv venv
 ```
 .\venv\Scripts\activate
 ```
-5. Run the requirements.txt
+5. Run the requirements.txt (Before this, make sure you have microsoft build tools installed, else, it will fail for some packages)
 ```
 pip install -r .\requirements.txt
 ```
@@ -77,8 +83,46 @@ call venv\Scripts\activate
 python webui.py
 ```
 
+## Usage
+There are 3 Tabs: Generation, Training, and Settings
+
+### Generation
+Before you start generating, you need a small reference audio file (preferably wave file) to generate style vectors from.  This can be used for "zero shot" cloning as well, but you'll do the same thing for generating after training a model.
+
+To do this, go into the ```voices``` folder, then create a new folder and name it whatever speaker name you'd like.  Then, place the small reference audio file into that folder.  The full path should look like below:
+```
+voices/name_of_your_speaker/reference_audio.wav
+```
+If you had already launched the webui, click on the ```Update Voices``` button and it'll update the voices that are now available to choose from.
+
+One thing to note is the ```Settings``` tab contains the StyleTTS models that are available, but by default, if no training has been done, the base pretrained model will be selected.  After training, you'll be able to change what model is loaded.
+
+|Field      |Description|
+|-----------|-----------|
+|Input text| The text you want to generate |
+|Voice| Voices that are available |
+|Reference Audio| The audio file to use as a reference for generation|
+|Seed| A number randomly assigned to each generation.  A seed will generate the same audio output no matter how many times you generate.  Set to -1 to have it be randomized|
+|alpha| Affects speaker timbre, the higher the value, the further it is from the reference sample. At 0, may sound closer to reference sample at the cost of a little quality|
+|beta| Affects speaker prosody and expressiveness.  The higher the value, the more exaggerated speech may be.|
+|Diffusion Steps| Affects quality at the cost of some speed.  The higher the number, the more denoising-steps are done (in relation to diffusion models not audio noise)|
+|Embedding Scale| Affects speaker expressiveness/emotion.  A higher value may result in higher emotion or expression.|
+
+### Training
+To be continued
+
+
 ## Troubleshooting 
 Check either installation or running down below in case you run into some issues.  ALL ISSUES may not be covered, I'm bound to miss somethings,
+
+### You have 8GB of VRAM?
+It should be possible to train, but data will overflow onto CPU RAM (making training slower by a lot). At these settings, I was clocking in at 8.5GB of VRAM usage:
+- Batch Size = 1
+- Max Length = 100
+- Diffusion Epoch = Set a number higher than Epochs (disables this training)
+- Join Epoch = Set a number higher than Epochs (disables this training)
+
+You may be in luck though because 10-20 epochs of finetuning may be all you need for something decent.  Set it, then go do something else for 24 hours.  Max Length below 100 will cause issues, you can try it, but I didn't get anything good out of it.
 
 ### Installation
 I reckon there will be a lot of errors that I have either come across or not.  If you have the packaged version, you shouldn't have to troubleshoot. If you do run into software issues, I will address them directly; difficulties in using the software are not included.  
@@ -92,6 +136,7 @@ Here are some that I came across:
 
 3. Error processing file '/usr/share/espeak-ng-data\phontab': No such file or directory.
   - eSpeak-NG not installed on your device, see above installation instructions
+  - Check: https://github.com/JarodMica/StyleTTS-WebUI/issues/8#issuecomment-2294998032
 
 ### Running StyleTTS2
 1. ```torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate xx.xx MiB. GPU```
@@ -107,4 +152,6 @@ Here are some that I came across:
     1. Your GPU cannot handle the bare minimum training requirements for StyleTTS2, there's no solution other than upgrading to more VRAM.
     2. Continue training, just at the slower rate.
       - It should finish, but may take 2-10x the time that it would normally take if you could fit it all into VRAM
+4. FileNotFoundError: [Errno 2] No such file or directory: 'training/name_of_voice/train_phoneme.txt'
+  - You didn't run the ```Run Phonemization``` button after ```Transcribe and Process```, OR something went wrong during that process.
 
