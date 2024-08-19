@@ -4,3 +4,6 @@
 [submodule "modules/tortoise_dataset_tools"]
 	path = modules/tortoise_dataset_tools
 	url = https://github.com/JarodMica/tortoise_dataset_tools
+[submodule "modules/styletts2_phonemizer"]
+	path = modules/styletts2_phonemizer
+	url = https://github.com/JarodMica/styletts2_phonemizer.git
