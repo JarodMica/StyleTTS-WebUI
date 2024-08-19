@@ -12,7 +12,7 @@ An all-in-one inferencing and training WebUI for StyleTTS.  The intended compatb
 There is no Linux or Mac set-up at the moment. However, I think the set-up on linux isn't too convoluted as it doesn't require any code modifications, just installation modifications.  I believe you do not need to uninstall and reinstall torch and then the back slashes should be replaced with forward slashes in the commands below.
 
 ### Windows Package
-Is available for Youtube Channel Members at the Super Supporter level: https://www.youtube.com/channel/UCwNdsF7ZXOlrTKhSoGJPnlQ/join
+Is available for Youtube Channel Members at the Supporter (Package) level: https://www.youtube.com/channel/UCwNdsF7ZXOlrTKhSoGJPnlQ/join
 
 **Minimum Requirements**
 - Nvidia Graphics Card (12GB VRAM is the minimum recommendation for training at a decent speed, 8GB possible though, albeit very slow. See below troubleshooting for more information)
@@ -128,13 +128,13 @@ You may be in luck though because 10-20 epochs of finetuning may be all you need
 I reckon there will be a lot of errors that I have either come across or not.  If you have the packaged version, you shouldn't have to troubleshoot. If you do run into software issues, I will address them directly; difficulties in using the software are not included.  
 
 Here are some that I came across:
-1. OSError: [WinError 1314] A required privilege is not held by the client: 
+1. **OSError: [WinError 1314] A required privilege is not held by the client:**
   - Occurs after transcribing for the first time after downloading whisper model.  Just re-run the process and it should work out fine
 
-2. cudnn or cublas .dll files are not found
+2. **cudnn or cublas .dll files are not found**
   - Ensure you're using torch 2.3.1 as shown above
 
-3. Error processing file '/usr/share/espeak-ng-data\phontab': No such file or directory.
+3. **Error processing file '/usr/share/espeak-ng-data\phontab': No such file or directory.**
   - eSpeak-NG not installed on your device, see above installation instructions
   - Check: https://github.com/JarodMica/StyleTTS-WebUI/issues/8#issuecomment-2294998032
 
@@ -146,12 +146,19 @@ Here are some that I came across:
 2. ```RuntimeError: CUDA error: an illegal memory access was encountered``` OR ```RuntimeError: GET was unable to find an engine to execute this computation```
   - Running with batch size of 1 and max length might be too high even if GPU isn't fully saturated with data.  Not entirely sure why this happens, but try to keep batch size at 2.  Batch size of 1 may allow you to train with longer max_length, but that's when I see this error happen the most.
   - This does NOT occur while training in wsl/linux as far as I've tested
-3. Training is VERY slow
+3. **Training is VERY slow**
   - Open task manager and check how much VRAM is being used by going to the performance tab and clicking on GPU.  If you notice that "Dedicated GPU memory" is full, and that "GPU memory" usage is higher than "Dedicated GPU memory" or "Shared GPU memory" is being used, training data is overflowing onto your CPU RAM which will severly hurt training speeds.
   - Two things:
     1. Your GPU cannot handle the bare minimum training requirements for StyleTTS2, there's no solution other than upgrading to more VRAM.
     2. Continue training, just at the slower rate.
       - It should finish, but may take 2-10x the time that it would normally take if you could fit it all into VRAM
-4. FileNotFoundError: [Errno 2] No such file or directory: 'training/name_of_voice/train_phoneme.txt'
+4. **FileNotFoundError: [Errno 2] No such file or directory: 'training/name_of_voice/train_phoneme.txt'**
   - You didn't run the ```Run Phonemization``` button after ```Transcribe and Process```, OR something went wrong during that process.
 
+## Acknowledgements
+Huge thanks to the developers responsible for developing StyleTTS2: https://github.com/yl4579/StyleTTS2
+
+## Usage Notice
+The base pre-trained StyleTTS2 model used here comes with a License of:
+
+**Pre-Trained Models:** Before using these pre-trained models, you agree to inform the listeners that the speech samples are synthesized by the pre-trained models, unless you have the permission to use the voice you synthesize. That is, you agree to only use voices whose speakers grant the permission to have their voice cloned, either directly or by license before making synthesized voices public, or you have to publicly announce that these voices are synthesized if you do not have the permission to use these voices.

@@ -444,7 +444,7 @@ def phonemize_files(voice, progress=gr.Progress(track_tqdm=True)):
     # Hardcoded to "both" to stay consistent with the train_to_phoneme.py script and not having to modify it
     option = "both"
     
-    from modules.tortoise_dataset_tools.dataset_whisper_tools.train_to_phoneme import process_file
+    from modules.styletts2_phonemizer.train_to_phoneme import process_file
     
     progress(0.0, desc="Train Phonemization Starting")
     process_file(train_text_path, train_opt_path, option)

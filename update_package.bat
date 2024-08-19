@@ -31,6 +31,7 @@ xcopy StyleTTS-WebUI\update_package.bat update_package.bat /E /I /H
 
 xcopy StyleTTS-WebUI\webui.py webui.py /H
 xcopy StyleTTS-WebUI\modules\tortoise_dataset_tools modules\tortoise_dataset_tools /E /I /H
+xcopy StyleTTS-WebUI\modules\styletts2_phonemizer modules\styletts2_phonemizer /E /I /H
 xcopy StyleTTS-WebUI\modules\StyleTTS2 modules\StyleTTS2 /E /I /H
 
 runtime\python.exe -m pip uninstall StyleTTS2
