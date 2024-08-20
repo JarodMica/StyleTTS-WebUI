@@ -16,7 +16,11 @@ if os.path.exists("runtime"):
     if script_dir not in sys.path:
         sys.path.insert(0, script_dir)
     espeak_path = os.path.join(os.path.dirname(__file__), 'espeak NG')
-    os.environ['ESPEAK_DATA_PATH'] = espeak_path
+    espeak_library = os.path.join(os.path.dirname(__file__), 'espeak NG', 'libespeak-ng.dll')
+    espeak_data_path = os.path.join(espeak_path, 'espeak-ng-data')
+    os.environ['PHONEMIZER_ESPEAK_PATH'] = espeak_path
+    os.environ['PHONEMIZER_ESPEAK_LIBRARY'] = espeak_library
+    os.environ['ESPEAK_DATA_PATH'] = espeak_data_path
 
 import gradio as gr
 import torch
@@ -659,7 +663,6 @@ def main():
                     )
                     
                     with gr.TabItem("Generate Configuration"):
-                        list_of_models = get_voice_models()
                         with gr.Column():
                             with gr.Row():
                                 with gr.Column():
@@ -680,10 +683,7 @@ def main():
                                     epochs = gr.Slider(label="Epochs", minimum=1, maximum=100, step=1, value=40)
                                     batch_size = gr.Slider(label="Batch Size", minimum=1, maximum=100, step=1, value=2)
                                     max_len = gr.Slider(label="Max Length", minimum=50, maximum=1000, step=10, value=250)
-                                    # pretrained_model = gr.Textbox(label="Pretrained Model", value=r"models\pretrain_base_1\epochs_2nd_00020.pth")
-                                    pretrained_model = gr.Dropdown(
-                                            choices=list_of_models, label="Pretrained Model to Use", type="value", value=r"models\pretrain_base_1\epochs_2nd_00020.pth"
-                                            )
+                                    pretrained_model = gr.Textbox(label="Pretrained Model", value=r"models\pretrain_base_1\epochs_2nd_00020.pth")
                                     load_only_params = gr.Checkbox(value=True, label="Load Only Params")
                                     
                                     diff_epoch = gr.Number(label="Diffusion Epoch", value=0)
@@ -783,7 +783,7 @@ def main():
                             ])
             
             with gr.TabItem("Settings"):
-                
+                list_of_models = get_voice_models()
                 GENERATE_SETTINGS["voice_model"] = gr.Dropdown(
                     choices=list_of_models, label="Voice Models", type="value", value=initial_settings["voice_model"])
                 refresh_models_available_button = gr.Button(
