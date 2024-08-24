@@ -44,6 +44,15 @@ GENERATE_SETTINGS = {}
 TRAINING_DIR = "training"
 BASE_CONFIG_FILE_PATH = r"Configs\template_config_ft.yml"
 WHISPER_MODELS = ["tiny", "base", "small", "medium", "large", "large-v1", "large-v2", "large-v3"]
+VALID_AUDIO_EXT = [
+    ".mp3",
+    ".wav",
+    ".flac",
+    ".aac",
+    ".ogg",
+    ".m4a",
+    ".opus"
+]
 
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -343,13 +352,13 @@ def transcribe_other_language_proxy(voice, language, chunk_size, continuation_di
 
     from modules.tortoise_dataset_tools.audio_conversion_tools.split_long_file import get_duration, process_folder
     chosen_directory = os.path.join("./datasets", voice)
-    items = os.listdir(chosen_directory)
-    
+    items = [item for item in os.listdir(chosen_directory) if os.path.splitext(item)[1].lower() in VALID_AUDIO_EXT]
+
     # This is to prevent an error below when processing "non audio" files.  This will occur with other types, but .pth should
     # be the only other ones in the voices folder.
-    for file in items:
-        if file.endswith(".pth"):
-            items.remove(file)
+    # for file in items:
+    #     if file.endswith(".pth"):
+    #         items.remove(file)
     
     # In case of sudden restart, removes this intermediary file used for rename
     for file in items:
