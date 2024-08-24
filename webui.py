@@ -296,7 +296,11 @@ def load_whisper_model(language=None, model_name=None, progress=None):
         device = "cuda" 
     else:
         raise gr.Error("Non-Nvidia GPU detected, or CUDA not available")
-    whisper_model = whisperx.load_model(model_name, device, download_root="whisper_models")
+    try:
+        whisper_model = whisperx.load_model(model_name, device, download_root="whisper_models", compute_type="float16")
+    except Exception as e: # for older GPUs
+        print(f"Debugging info: {e}")
+        whisper_model = whisperx.load_model(model_name, device, download_root="whisper_models", compute_type="int8")
     # whisper_align_model = whisperx.load_align_model(model_name="WAV2VEC2_ASR_LARGE_LV60K_960H" if language=="en" else None, language_code=language, device=device)
     print("Loaded Whisper model")
     return whisper_model
