@@ -159,6 +159,8 @@ Here are some that I came across:
     - You didn't run the ```Run Phonemization``` button after ```Transcribe and Process```, OR something went wrong during that process.
 5. **Training Error: ZeroDivisionError: division by zero**
     - Not enough train files inside validation_phoneme.txt, you'll need more data or check the below issue here: https://github.com/JarodMica/StyleTTS-WebUI/issues/14
+6. **ValueError: cannot convert float NaN to integer**
+    - See: https://github.com/JarodMica/StyleTTS-WebUI/issues/24#issuecomment-2310880597
   
 ## Continuous Development
 I don't have plans for active development of this project - after fixing some bugs, it will most likely end up in a state of dormancy until something else breaks it (package dependencies), or a feature is heavily requested to be added.   
