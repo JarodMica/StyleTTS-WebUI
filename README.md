@@ -1,12 +1,16 @@
 # StyleTTS WebUI
 An all-in-one inferencing and training WebUI for StyleTTS.  The intended compatbility is meant for Windows, but should still work with a little bit of modification for WSL or Linux.
-> StyleTTS actually trains nicer in WSL than windows, so I might add compatibiltiy here sometime in the future
+> StyleTTS actually trains nicer in WSL than windows, so I might add compatibiltiy here sometime in the future.
+
 ## Features
 ✔️ Inferencing/Generation Tab with ability to choose between different trained models
 
 ✔️ Dataset prepration using Whisperx
 
 ✔️ Training tab with tensorboard monitoring available
+
+## YouTube Video
+Tutorial and installation here: https://youtu.be/dCmAbcJ5v5k
 
 ## Setup
 There is no Linux or Mac set-up at the moment. However, I think the set-up on linux isn't too convoluted as it doesn't require any code modifications, just installation modifications.  I believe you do not need to uninstall and reinstall torch and then the back slashes should be replaced with forward slashes in the commands below.
@@ -109,18 +113,17 @@ One thing to note is the ```Settings``` tab contains the StyleTTS models that ar
 |Embedding Scale| Affects speaker expressiveness/emotion.  A higher value may result in higher emotion or expression.|
 
 ### Training
-To be continued
-
+Please check the related YouTube video here: https://youtu.be/dCmAbcJ5v5k, start from around 13:05
 
 ## Troubleshooting 
 Check either installation or running down below in case you run into some issues.  ALL ISSUES may not be covered, I'm bound to miss somethings,
 
 ### You have 8GB of VRAM?
 It should be possible to train, but data will overflow onto CPU RAM (making training slower by a lot). At these settings, I was clocking in at 8.5GB of VRAM usage:
-- Batch Size = 1
-- Max Length = 100
-- Diffusion Epoch = Set a number higher than Epochs (disables this training)
-- Join Epoch = Set a number higher than Epochs (disables this training)
+  - Batch Size = 1
+  - Max Length = 100
+  - Diffusion Epoch = Set a number higher than Epochs (disables this training)
+  - Join Epoch = Set a number higher than Epochs (disables this training)
 
 You may be in luck though because 10-20 epochs of finetuning may be all you need for something decent.  Set it, then go do something else for 24 hours.  Max Length below 100 will cause issues, you can try it, but I didn't get anything good out of it.
 
@@ -129,31 +132,38 @@ I reckon there will be a lot of errors that I have either come across or not.  I
 
 Here are some that I came across:
 1. **OSError: [WinError 1314] A required privilege is not held by the client:**
-  - Occurs after transcribing for the first time after downloading whisper model.  Just re-run the process and it should work out fine
+    - Occurs after transcribing for the first time after downloading whisper model.  Just re-run the process and it should work out fine
 
 2. **cudnn or cublas .dll files are not found**
-  - Ensure you're using torch 2.3.1 as shown above
+    - Ensure you're using torch 2.3.1 as shown above
 
 3. **Error processing file '/usr/share/espeak-ng-data\phontab': No such file or directory.**
-  - eSpeak-NG not installed on your device, see above installation instructions
-  - Check: https://github.com/JarodMica/StyleTTS-WebUI/issues/8#issuecomment-2294998032
+    - eSpeak-NG not installed on your device, see above installation instructions
+    - Check: https://github.com/JarodMica/StyleTTS-WebUI/issues/8#issuecomment-2294998032
 
 ### Running StyleTTS2
 1. ```torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate xx.xx MiB. GPU```
-  - Your GPU doesn't have enough VRAM for the configurations you saved for training a voice.  Lower batch size to 1, try again (may cause issue notied in 2).  If not, then lower Max Length in intervals of 50 till it either works or reachs 100 for Max Length.
-  - If you hit 100 for Max Length and you still run into issues, set "Diffusion Epoch" and "Joint Epoch" to values that are higher than what you set "Epochs" to.  This disables diffusion and joint training, but the output quality on inference (generation) might suffer.
-  - There's a discussion here that talks more about these settings: https://github.com/yl4579/StyleTTS2/discussions/81
+    - Your GPU doesn't have enough VRAM for the configurations you saved for training a voice.  Lower batch size to 1, try again (may cause issue notied in 2).  If not, then lower Max Length in intervals of 50 till it either works or reachs 100 for Max Length.
+    - If you hit 100 for Max Length and you still run into issues, set "Diffusion Epoch" and "Joint Epoch" to values that are higher than what you set "Epochs" to.  This disables diffusion and joint training, but the output quality on inference (generation) might suffer.
+    - There's a discussion here that talks more about these settings: https://github.com/yl4579/StyleTTS2/discussions/81
 2. ```RuntimeError: CUDA error: an illegal memory access was encountered``` OR ```RuntimeError: GET was unable to find an engine to execute this computation```
-  - Running with batch size of 1 and max length might be too high even if GPU isn't fully saturated with data.  Not entirely sure why this happens, but try to keep batch size at 2.  Batch size of 1 may allow you to train with longer max_length, but that's when I see this error happen the most.
-  - This does NOT occur while training in wsl/linux as far as I've tested
+    - Running with batch size of 1 and max length might be too high even if GPU isn't fully saturated with data.  Not entirely sure why this happens, but try to keep batch size at 2.  Batch size of 1 may allow you to train with longer max_length, but that's when I see this error happen the most.
+    - This does NOT occur while training in wsl/linux as far as I've tested
 3. **Training is VERY slow**
-  - Open task manager and check how much VRAM is being used by going to the performance tab and clicking on GPU.  If you notice that "Dedicated GPU memory" is full, and that "GPU memory" usage is higher than "Dedicated GPU memory" or "Shared GPU memory" is being used, training data is overflowing onto your CPU RAM which will severly hurt training speeds.
-  - Two things:
-    1. Your GPU cannot handle the bare minimum training requirements for StyleTTS2, there's no solution other than upgrading to more VRAM.
-    2. Continue training, just at the slower rate.
-      - It should finish, but may take 2-10x the time that it would normally take if you could fit it all into VRAM
+    - Open task manager and check how much VRAM is being used by going to the performance tab and clicking on GPU.  If you notice that "Dedicated GPU memory" is full, and that "GPU memory" usage is higher than "Dedicated GPU memory" or "Shared GPU memory" is being used, training data is overflowing onto your CPU RAM which will severly hurt training speeds.
+    - Two things:
+      1. Your GPU cannot handle the bare minimum training requirements for StyleTTS2, there's no solution other than upgrading to more VRAM.
+      2. Continue training, just at the slower rate.
+        - It should finish, but may take 2-10x the time that it would normally take if you could fit it all into VRAM
 4. **FileNotFoundError: [Errno 2] No such file or directory: 'training/name_of_voice/train_phoneme.txt'**
-  - You didn't run the ```Run Phonemization``` button after ```Transcribe and Process```, OR something went wrong during that process.
+    - You didn't run the ```Run Phonemization``` button after ```Transcribe and Process```, OR something went wrong during that process.
+5. **Training Error: ZeroDivisionError: division by zero**
+    - Not enough train files inside validation_phoneme.txt, you'll need more data or check the below issue here: https://github.com/JarodMica/StyleTTS-WebUI/issues/14
+  
+## Continuous Development
+I don't have plans for active development of this project - after fixing some bugs, it will most likely end up in a state of dormancy until something else breaks it (package dependencies), or a feature is heavily requested to be added.   
+
+My projects often spring from bursts of motivation surrounding certain tools at certain times.  If I'm no longer using a tool actively, my development of it will reflect this as I can only realistically maintain and develop tools that I actually need to or want to use.  
 
 ## Acknowledgements
 Huge thanks to the developers responsible for developing StyleTTS2: https://github.com/yl4579/StyleTTS2
