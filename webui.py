@@ -33,10 +33,13 @@ from datetime import timedelta
 import glob
 import webbrowser
 import socket
+import numpy as np
+from scipy.io.wavfile import write
 
 from styletts2.utils import *
 from modules.tortoise_dataset_tools.dataset_whisper_tools.dataset_maker_large_files import *
 from modules.tortoise_dataset_tools.dataset_whisper_tools.combine_folders import *
+from Utils.splitcombine import split_and_recombine_text
 
 # Path to the settings file
 SETTINGS_FILE_PATH = "Configs/generate_settings.yaml"
@@ -122,16 +125,22 @@ def generate_audio(text, voice, reference_audio_file, seed, alpha, beta, diffusi
     set_seeds(seed_value)
     for k, path in reference_dicts.items():
         mean, std = -4, 4
+        print(f'model:{model}')
         ref_s = compute_style(path, model, to_mel, mean, std, device)
+
+        texts = split_and_recombine_text(text)
+        audios = []
         
-        wav1 = inference(text, ref_s, model, sampler, textcleaner, to_mel, device, model_params, global_phonemizer=global_phonemizer, alpha=alpha, beta=beta, diffusion_steps=diffusion_steps, embedding_scale=embedding_scale)
+        # wav1 = inference(text, ref_s, model, sampler, textcleaner, to_mel, device, model_params, global_phonemizer=global_phonemizer, alpha=alpha, beta=beta, diffusion_steps=diffusion_steps, embedding_scale=embedding_scale)
+        for t in texts:
+            audios.append(inference(t, ref_s, model, sampler, textcleaner, to_mel, device, model_params, global_phonemizer=global_phonemizer, alpha=alpha, beta=beta, diffusion_steps=diffusion_steps, embedding_scale=embedding_scale))
+
         rtf = (time.time() - start)
         print(f"RTF = {rtf:5f}")
         print(f"{k} Synthesized:")
-        from scipy.io.wavfile import write
         os.makedirs("results", exist_ok=True)
         audio_opt_path = os.path.join("results", f"{voice}_output.wav")
-        write(audio_opt_path, 24000, wav1)
+        write(audio_opt_path, 24000, np.concatenate(audios))
     
     # Save the settings after generation
     save_settings({
