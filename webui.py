@@ -88,6 +88,58 @@ def load_all_models(model_path):
     
     load_pretrained_model(model, model_path=model_path)
     return False
+
+def unload_all_models():
+    global global_phonemizer, model, model_params, sampler, textcleaner, to_mel, params_whole
+
+    if global_phonemizer:
+        del global_phonemizer
+        global_phonemizer = None
+        print("Unloaded phonemizer")
+
+    if model:
+        del model
+        model = None
+        print("Unloaded model")
+
+    if model_params:
+        del model_params
+        model_params = None
+        print("Unloaded model params")
+
+    if sampler:
+        del sampler
+        sampler = None
+        print("Unloaded sampler")
+
+    if textcleaner:
+        del textcleaner
+        textcleaner = None
+        print("Unloaded textcleaner")
+
+    if to_mel:
+        del to_mel
+        to_mel = None
+        print("Unloaded to_mel")
+
+    if params_whole:
+        del params_whole
+        params_whole = None
+        print("Unloaded params_whole")
+
+    do_gc()
+    torch.cuda.empty_cache()
+
+    gr.Info("All models unloaded.")
+
+def do_gc():
+    # garbage collection - useful in combination with torch.cuda.empty_cache to clear out gpu when unloading models
+    import gc
+    gc.collect()
+    try:
+        torch.cuda.empty_cache()
+    except Exception as e:
+        pass
     
 def get_file_path(root_path, voice, file_extension, error_message):
     model_path = os.path.join(root_path, voice)
@@ -819,6 +871,10 @@ def main():
                 refresh_models_available_button.click(fn=update_models,
                                                       outputs=GENERATE_SETTINGS["voice_model"]
                 )
+                unload_all_models_button = gr.Button(
+                        value="Unload all loaded models")
+                
+                unload_all_models_button.click(fn=unload_all_models)
                 
                 GENERATE_SETTINGS["voice_model"].change(fn=update_voice_model,
                                 inputs=[GENERATE_SETTINGS["voice_model"]])
