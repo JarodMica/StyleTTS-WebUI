@@ -65,9 +65,10 @@ model_params = None
 sampler = None
 textcleaner = None
 to_mel = None
+params_whole = None
 
 def load_all_models(model_path):
-    global global_phonemizer, model, model_params, sampler, textcleaner, to_mel
+    global global_phonemizer, model, model_params, sampler, textcleaner, to_mel, params_whole
     
     model_config = (get_model_configuration(model_path))
     if not model_config:
@@ -86,7 +87,7 @@ def load_all_models(model_path):
     to_mel = torchaudio.transforms.MelSpectrogram(
         n_mels=80, n_fft=2048, win_length=1200, hop_length=300)
     
-    load_pretrained_model(model, model_path=model_path)
+    params_whole = load_pretrained_model(model, model_path=model_path)
     return False
 
 def unload_all_models():
