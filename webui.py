@@ -849,7 +849,7 @@ def main():
                 break
     
     webbrowser.open(f"http://localhost:{webui_port}")
-    demo.launch()
+    demo.launch(server_port=webui_port)
 
 if __name__ == "__main__":
     main()
