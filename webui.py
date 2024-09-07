@@ -33,10 +33,13 @@ from datetime import timedelta
 import glob
 import webbrowser
 import socket
+import numpy as np
+from scipy.io.wavfile import write
 
 from styletts2.utils import *
 from modules.tortoise_dataset_tools.dataset_whisper_tools.dataset_maker_large_files import *
 from modules.tortoise_dataset_tools.dataset_whisper_tools.combine_folders import *
+from Utils.splitcombine import split_and_recombine_text
 
 # Path to the settings file
 SETTINGS_FILE_PATH = "Configs/generate_settings.yaml"
@@ -62,9 +65,10 @@ model_params = None
 sampler = None
 textcleaner = None
 to_mel = None
+params_whole = None
 
 def load_all_models(model_path):
-    global global_phonemizer, model, model_params, sampler, textcleaner, to_mel
+    global global_phonemizer, model, model_params, sampler, textcleaner, to_mel, params_whole
     
     model_config = (get_model_configuration(model_path))
     if not model_config:
@@ -83,8 +87,60 @@ def load_all_models(model_path):
     to_mel = torchaudio.transforms.MelSpectrogram(
         n_mels=80, n_fft=2048, win_length=1200, hop_length=300)
     
-    load_pretrained_model(model, model_path=model_path)
+    params_whole = load_pretrained_model(model, model_path=model_path)
     return False
+
+def unload_all_models():
+    global global_phonemizer, model, model_params, sampler, textcleaner, to_mel, params_whole
+
+    if global_phonemizer:
+        del global_phonemizer
+        global_phonemizer = None
+        print("Unloaded phonemizer")
+
+    if model:
+        del model
+        model = None
+        print("Unloaded model")
+
+    if model_params:
+        del model_params
+        model_params = None
+        print("Unloaded model params")
+
+    if sampler:
+        del sampler
+        sampler = None
+        print("Unloaded sampler")
+
+    if textcleaner:
+        del textcleaner
+        textcleaner = None
+        print("Unloaded textcleaner")
+
+    if to_mel:
+        del to_mel
+        to_mel = None
+        print("Unloaded to_mel")
+
+    if params_whole:
+        del params_whole
+        params_whole = None
+        print("Unloaded params_whole")
+
+    do_gc()
+    torch.cuda.empty_cache()
+
+    gr.Info("All models unloaded.")
+
+def do_gc():
+    # garbage collection - useful in combination with torch.cuda.empty_cache to clear out gpu when unloading models
+    import gc
+    gc.collect()
+    try:
+        torch.cuda.empty_cache()
+    except Exception as e:
+        pass
     
 def get_file_path(root_path, voice, file_extension, error_message):
     model_path = os.path.join(root_path, voice)
@@ -122,16 +178,22 @@ def generate_audio(text, voice, reference_audio_file, seed, alpha, beta, diffusi
     set_seeds(seed_value)
     for k, path in reference_dicts.items():
         mean, std = -4, 4
+        print(f'model:{model}')
         ref_s = compute_style(path, model, to_mel, mean, std, device)
+
+        texts = split_and_recombine_text(text)
+        audios = []
         
-        wav1 = inference(text, ref_s, model, sampler, textcleaner, to_mel, device, model_params, global_phonemizer=global_phonemizer, alpha=alpha, beta=beta, diffusion_steps=diffusion_steps, embedding_scale=embedding_scale)
+        # wav1 = inference(text, ref_s, model, sampler, textcleaner, to_mel, device, model_params, global_phonemizer=global_phonemizer, alpha=alpha, beta=beta, diffusion_steps=diffusion_steps, embedding_scale=embedding_scale)
+        for t in texts:
+            audios.append(inference(t, ref_s, model, sampler, textcleaner, to_mel, device, model_params, global_phonemizer=global_phonemizer, alpha=alpha, beta=beta, diffusion_steps=diffusion_steps, embedding_scale=embedding_scale))
+
         rtf = (time.time() - start)
         print(f"RTF = {rtf:5f}")
         print(f"{k} Synthesized:")
-        from scipy.io.wavfile import write
         os.makedirs("results", exist_ok=True)
         audio_opt_path = os.path.join("results", f"{voice}_output.wav")
-        write(audio_opt_path, 24000, wav1)
+        write(audio_opt_path, 24000, np.concatenate(audios))
     
     # Save the settings after generation
     save_settings({
@@ -810,6 +872,10 @@ def main():
                 refresh_models_available_button.click(fn=update_models,
                                                       outputs=GENERATE_SETTINGS["voice_model"]
                 )
+                unload_all_models_button = gr.Button(
+                        value="Unload all loaded models")
+                
+                unload_all_models_button.click(fn=unload_all_models)
                 
                 GENERATE_SETTINGS["voice_model"].change(fn=update_voice_model,
                                 inputs=[GENERATE_SETTINGS["voice_model"]])
@@ -840,7 +906,7 @@ def main():
                 break
     
     webbrowser.open(f"http://localhost:{webui_port}")
-    demo.launch()
+    demo.launch(server_port=webui_port)
 
 if __name__ == "__main__":
     main()
