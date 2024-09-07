@@ -5,6 +5,8 @@ An all-in-one inferencing and training WebUI for StyleTTS.  The intended compatb
 ## Features
 ✔️ Inferencing/Generation Tab with ability to choose between different trained models
 
+✔️ Split and combine paragraphs to generate audio for text of any arbitrary length - Thanks @JonSingleton https://github.com/JarodMica/StyleTTS-WebUI/pull/29
+
 ✔️ Dataset prepration using Whisperx
 
 ✔️ Training tab with tensorboard monitoring available
