@@ -9,7 +9,7 @@ if exist runtime (
     runtime\Scripts\tensorboard.exe --logdir training
 
     :: Check if the previous command failed
-    if %errorlevel% neq 0 (
+    if %errorlevel% equ 0 (
         echo TensorBoard failed to start, attempting to reinstall TensorBoard...
         
         :: Force uninstall TensorBoard
