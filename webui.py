@@ -676,7 +676,7 @@ def main():
                                     label="Audio Extension", value="wav", choices=["wav", "mp3"]
                                 )
                                 DATASET_SETTINGS["speaker_id"] = gr.Checkbox(
-                                    label="Speaker ID", value=True
+                                    label="Speaker ID", value=True, visible=False
                                 )
                             transcribe2_button = gr.Button(
                                 value="Transcribe and Process")
