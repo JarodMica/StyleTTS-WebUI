@@ -49,16 +49,24 @@ py -3.11 -m venv venv
 ```
 .\venv\Scripts\activate
 ```
-5. Run the requirements.txt (Before this, make sure you have microsoft build tools installed, else, it will fail for some packages)
+5. Install torch manually as windows does not particularly like just installing torch, you need to install prebuilt wheels.
+> **NOTE:** torch installed with 2.4.0 or higher was causing issues with cudnn and cublas dlls not being found (presumed due to ctranslate2).  Make sure you use 2.3.1 as specified in the command below.
+```
+pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
+```
+6. Run the requirements.txt (Before this, make sure you have microsoft build tools installed, else, it will fail for some packages)
 ```
 pip install -r .\requirements.txt
 ```
-6. Uninstall and reinstall torch manually as windows does not particularly like just installing torch, you need to install prebuilt wheels.
-> **NOTE:** torch installed with 2.4.0 or higher was causing issues with cudnn and cublas dlls not being found (presumed due to ctranslate2).  Make sure you use 2.3.1 as specified in the command below.
-```
-pip uninstall torch
-pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
-```
+  - 6.1. Check torch, if it is greater than 2.3.1, uninstall and reinstall, else, you can continue on and no need to run the below:
+    ```
+    pip show torch
+    ```
+    If greater than 2.3.1, uninstall and reinstall:
+    ```
+    pip uninstall torch
+    pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
+    ```
 7. Initialize submodules in the repository
 ```
 git submodule init
