@@ -33,6 +33,9 @@ Is available for Youtube Channel Members at the Supporter (Package) level: https
 - vscode or some other IDE (optional)
 - Nvidia Graphics Card (12GB VRAM is the minimum recommendation for training at a decent speed, 8GB possible though, albeit very slow. See below troubleshooting for more information)
 - Microsoft build tools, follow: https://stackoverflow.com/questions/64261546/how-to-solve-error-microsoft-visual-c-14-0-or-greater-is-required-when-inst/64262038#64262038
+
+0. Install FFMPEG, overall, just a good tool to have and is needed for the repo.
+    - https://www.youtube.com/watch?v=JR36oH35Fgg&ab_channel=Koolac
 1. Clone the repository
 ```
 git clone https://github.com/JarodMica/StyleTTS-WebUI.git
