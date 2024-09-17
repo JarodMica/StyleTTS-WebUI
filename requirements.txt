@@ -1,6 +1,5 @@
 SoundFile==0.12.1
 munch==4.0.0
-torch==2.3.1+cu121
 pydub==0.25.1
 pyyaml==6.0.1
 librosa==0.10.2.post1
